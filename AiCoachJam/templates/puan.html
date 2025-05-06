@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YKS Puan Girişi</title>
+    <link rel="stylesheet" href="/static/puan.css">
+</head>
+<body>
+
+    <div class="card">
+        <h2>YKS Puanını Gir</h2>
+
+        <select id="puanTuru">
+            <option value="">Puan Türü Seçiniz</option>
+            <option value="Sayısal">Sayısal</option>
+            <option value="Eşit Ağırlık">Eşit Ağırlık</option>
+            <option value="Sözel">Sözel</option>
+        </select>
+
+        <input type="number" id="puan" placeholder="Puanınızı girin" min="0" max="500" />
+
+        <button id="ileriBtn">İleri</button>
+
+        <div class="error" id="errorMsg"></div>
+    </div>
+
+<script>
+    document.getElementById('ileriBtn').addEventListener('click', function () {
+        const puanTuru = document.getElementById('puanTuru').value;
+        const puan = parseFloat(document.getElementById('puan').value);
+        const errorMsg = document.getElementById('errorMsg');
+
+        if (!puanTuru || isNaN(puan)) {
+            errorMsg.textContent = "Lütfen tüm alanları doldurun.";
+            return;
+        }
+
+        errorMsg.textContent = "";
+
+        // Her puan türü için ilgili localStorage değerini gir
+        if (puanTuru === "Sayısal") {
+            localStorage.setItem("say", puan);
+            localStorage.setItem("ea", 0);
+            localStorage.setItem("soz", 0);
+        } else if (puanTuru === "Eşit Ağırlık") {
+            localStorage.setItem("say", 0);
+            localStorage.setItem("ea", puan);
+            localStorage.setItem("soz", 0);
+        } else if (puanTuru === "Sözel") {
+            localStorage.setItem("say", 0);
+            localStorage.setItem("ea", 0);
+            localStorage.setItem("soz", puan);
+        }
+
+        window.location.href = '/test';
+    });
+</script>
+
+</body>
+</html>

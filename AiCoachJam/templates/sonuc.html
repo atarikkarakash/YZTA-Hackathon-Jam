@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sonuç Sayfası</title>
+    <link rel="stylesheet" href="/static/sonuc.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<div class="results-container">
+    <div class="left-box">
+        <h3>TEST SONUÇLARI</h3>
+
+        <!-- Grafik burada -->
+        <canvas id="riasecChart" width="400" height="200"></canvas>
+
+        <div class="features">
+            <h4>EN BELİRGİN ÖZELLİKLER</h4>
+            <p id="personalityTypes"></p>
+        </div>
+    </div>
+
+    <div class="right-boxes">
+        <div class="section-box1">
+            <h4>ÖNERİLEN BÖLÜMLER</h4>
+            <ul></ul>
+        </div>
+
+        <div class="section-box2">
+            <h4>ALTERNATİF BÖLÜMLER</h4>
+            <ul></ul>
+        </div>
+
+        <div class="section-box3">
+            <h4>BONUS</h4>
+            <ul>
+                <li>İktisat</li>
+                <li>Veri Bilimi</li>
+                <li>İstatistik</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+const result = JSON.parse(localStorage.getItem("recommendationResults"));
+const sectionBox1 = document.querySelector(".section-box1 ul");
+const sectionBox2 = document.querySelector(".section-box2 ul");
+const personalityBox = document.getElementById("personalityTypes");
+
+// Temizle
+sectionBox1.innerHTML = "";
+sectionBox2.innerHTML = "";
+personalityBox.innerHTML = "";
+
+// Bölüm önerileri
+result.recommendations.slice(0, 3).forEach(item => {
+    const li = document.createElement("li");
+    li.className = "recommendation-item";
+    li.innerHTML = `<strong>${item.program}</strong><br><br>${item.reason}`;
+    sectionBox1.appendChild(li);
+});
+result.recommendations.slice(3, 6).forEach(item => {
+    const li = document.createElement("li");
+    li.textContent = item.program;
+    sectionBox2.appendChild(li);
+});
+
+// Kişilik özellikleri
+personalityBox.textContent = result.dominant_labels.join(", ");
+
+// Grafik çizimi
+const ctx = document.getElementById('riasecChart').getContext('2d');
+const profile = result.profile;
+
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: ['Gerçekçi (R)', 'Araştırmacı (I)', 'Sanatsal (A)', 'Sosyal (S)', 'Girişimci (E)', 'Geleneksel (C)'],
+        datasets: [{
+            label: 'RIASEC Skorları',
+            data: [
+                profile.R, profile.I, profile.A,
+                profile.S, profile.E, profile.C
+            ],
+            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+            borderColor: 'rgba(54, 162, 235, 1)',
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                suggestedMax: 25
+            }
+        }
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kariyer Testi</title>
+    <link rel="stylesheet" href="/static/test.css">
+</head>
+<body>
+
+    <div class="question-card">
+        <div id="questionText">Soru burada görünecek</div>
+        <div class="options" id="options">
+            <!-- Seçenekler buraya gelecek -->
+        </div>
+        <div>
+            <button id="prevBtn" disabled>Geri</button>
+            <button id="nextBtn">İleri</button>
+        </div>
+        <div id="progress">0 / 30</div>
+    </div>
+
+    <script>
+        const questions = [
+            // 1-5: Realistic
+            { text: "Aletlerle veya makinelerle çalışmaktan hoşlanırım.", category: "R" },
+            { text: "Açık havada fiziksel işler yapmayı tercih ederim.", category: "R" },
+            { text: "Bir şeyi tamir etmek bana keyif verir.", category: "R" },
+            { text: "Hayvanlarla ilgilenmeyi severim.", category: "R" },
+            { text: "Yap-boz gibi somut problemleri çözmeyi severim.", category: "R" },
+
+            // 6-10: Investigative
+            { text: "Bilimsel konuları araştırmaktan hoşlanırım.", category: "I" },
+            { text: "Zor problemleri analiz etmeyi severim.", category: "I" },
+            { text: "Laboratuvar ortamında çalışmak beni heyecanlandırır.", category: "I" },
+            { text: "Matematiksel sorunları çözmeyi severim.", category: "I" },
+            { text: "Neden-sonuç ilişkilerini incelemek ilgimi çeker.", category: "I" },
+
+            // 11-15: Artistic
+            { text: "Resim yapmak, müzikle ilgilenmek gibi yaratıcı işlerden keyif alırım.", category: "A" },
+            { text: "Duygu ve düşüncelerimi sanat yoluyla ifade etmeyi severim.", category: "A" },
+            { text: "Rutin işlerden çabuk sıkılırım.", category: "A" },
+            { text: "Yazı yazmak veya hikâye oluşturmak hoşuma gider.", category: "A" },
+            { text: "Kendi tarzımı yaratmak isterim.", category: "A" },
+
+            // 16-20: Social
+            { text: "İnsanların duygularını anlamaya çalışırım.", category: "S" },
+            { text: "Başkalarına bir konuda yardımcı olmayı severim.", category: "S" },
+            { text: "Öğretmekten keyif alırım.", category: "S" },
+            { text: "Grup çalışmalarında insanlarla etkili iletişim kurarım.", category: "S" },
+            { text: "Başkalarının gelişimine katkı sağlamak beni mutlu eder.", category: "S" },
+
+            // 21-25: Enterprising
+            { text: "İnsanları ikna etmekte başarılıyımdır.", category: "E" },
+            { text: "Risk almaktan korkmam.", category: "E" },
+            { text: "Liderlik görevlerini üstlenmeyi severim.", category: "E" },
+            { text: "Fikirlerimi hayata geçirmek için harekete geçerim.", category: "E" },
+            { text: "İnsanları organize edip yönlendirmeyi severim.", category: "E" },
+
+            // 26-30: Conventional
+            { text: "Dosyalama, düzenleme gibi işler hoşuma gider.", category: "C" },
+            { text: "Detaylara dikkat ederim.", category: "C" },
+            { text: "Verilen kurallara göre çalışmayı tercih ederim.", category: "C" },
+            { text: "Rutin işleri yapmak beni rahatsız etmez.", category: "C" },
+            { text: "Planlı ve organize çalışırım.", category: "C" }
+        ];
+
+        let currentQuestion = 0;
+const totalQuestions = questions.length;
+const answers = new Array(totalQuestions).fill(null);
+
+const questionText = document.getElementById('questionText');
+const optionsContainer = document.getElementById('options');
+const progress = document.getElementById('progress');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+const options = [
+    "Hiç katılmıyorum", "Katılmıyorum", "Kararsızım", "Katılıyorum", "Tamamen katılıyorum"
+];
+
+function renderQuestion() {
+    questionText.textContent = `${currentQuestion + 1}. ${questions[currentQuestion].text}`;
+    optionsContainer.innerHTML = '';
+    options.forEach((option, index) => {
+        const label = document.createElement('label');
+        const input = document.createElement('input');
+        input.type = 'radio';
+        input.name = 'answer';
+        input.value = index + 1;
+        if (answers[currentQuestion] === index + 1) input.checked = true;
+        label.appendChild(input);
+        label.appendChild(document.createTextNode(option));
+        optionsContainer.appendChild(label);
+    });
+    progress.textContent = `${currentQuestion + 1} / ${totalQuestions}`;
+    prevBtn.disabled = currentQuestion === 0;
+    nextBtn.textContent = currentQuestion === totalQuestions - 1 ? 'Bitir' : 'İleri';
+}
+
+prevBtn.addEventListener('click', () => {
+    saveAnswer();
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        renderQuestion();
+    }
+});
+
+nextBtn.addEventListener('click', () => {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if (!selected) {
+        alert("Lütfen bir seçenek seçin!");
+        return;
+    }
+    saveAnswer();
+    if (currentQuestion < totalQuestions - 1) {
+        currentQuestion++;
+        renderQuestion();
+    } else {
+        // Cevaplar ve puanlar tamamlandı → API'ye gönder
+        const riasecScores = answers;
+        const yksScores = {
+            say: parseFloat(localStorage.getItem("say")),
+            ea: parseFloat(localStorage.getItem("ea")),
+            soz: parseFloat(localStorage.getItem("soz"))
+        };
+
+        fetch("/recommend", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ riasec: { scores: riasecScores }, yks: yksScores })
+        })
+        .then(res => res.json())
+        .then(data => {
+            localStorage.setItem("recommendationResults", JSON.stringify(data));
+            window.location.href = "/sonuc";
+        });
+    }
+});
+
+function saveAnswer() {
+    const selected = document.querySelector('input[name="answer"]:checked');
+    if (selected) answers[currentQuestion] = parseInt(selected.value);
+}
+
+renderQuestion();
+</script>
+
+
+</body>
+</html>
