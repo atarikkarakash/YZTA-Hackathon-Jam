@@ -3,7 +3,7 @@ import google.generativeai as genai
 from dotenv import load_dotenv
 
 load_dotenv()
-api_key = os.getenv("AIzaSyBzVqrzQ2wZhaOWAiOFniIrD7NeQQo4xDw")
+api_key = os.getenv("GEMINI_API_KEY")
 genai.configure(api_key=api_key)
 
 def get_reason(program, personality_profile):
